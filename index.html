@@ -1,0 +1,1454 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#123a2e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Caixa do Campeonato</title>
+<style>
+  :root{
+    --bg:#faf7f0; --fg:#12211b; --card:#ffffff; --line:#e8e2d6; --muted:#6f7b73;
+    --primary:#123a2e; --primary2:#1d5844; --accent:#e2a33c; --danger:#b3402f; --ok:#1f6b4f;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--fg); font-size:15px; line-height:1.42;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    -webkit-tap-highlight-color:transparent;
+    padding-bottom:calc(84px + env(safe-area-inset-bottom));
+  }
+  h1,h2,h3{margin:0;letter-spacing:-.01em}
+  .wrap{max-width:620px;margin:0 auto;padding:0 14px}
+  .tabular{font-variant-numeric:tabular-nums}
+  .muted{color:var(--muted)}
+  .small{font-size:12.5px}
+
+  /* topo */
+  .top{position:sticky;top:0;z-index:20;background:var(--primary);color:#f7f3ea;padding:calc(10px + env(safe-area-inset-top)) 0 12px}
+  .brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px}
+  .brand svg{width:19px;height:19px;color:var(--accent)}
+  #sel-camp{margin-top:10px;width:100%;background:rgba(255,255,255,.12);color:#f7f3ea;border:1px solid rgba(255,255,255,.24);border-radius:12px;padding:9px 10px;font-size:14px;font-weight:600;font-family:inherit;appearance:none}
+  #sel-camp option{color:#12211b;background:#fff}
+
+  /* cartões */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}
+  .card + .card{margin-top:10px}
+  .stack{display:flex;flex-direction:column;gap:10px}
+  .sec-title{display:flex;align-items:center;justify-content:space-between;margin:18px 0 8px}
+  .sec-title h2{font-size:14px;font-weight:700}
+  .sec-title a,.sec-title button{font-size:12.5px;font-weight:650;color:var(--primary2);background:none;border:0;font-family:inherit;padding:0}
+
+  /* hero */
+  .hero{background:linear-gradient(160deg,#123a2e,#1d5844);color:#f7f3ea;border-radius:20px;padding:16px;margin-top:14px}
+  .hero .saldo{font-size:33px;font-weight:800;letter-spacing:-.03em;line-height:1.1;margin-top:2px}
+  .hero .mini{display:flex;gap:8px;margin-top:14px}
+  .hero .mini > div{flex:1;background:rgba(255,255,255,.11);border-radius:12px;padding:8px 10px}
+  .hero .mini b{display:block;font-size:14px;font-weight:700}
+
+  /* botões */
+  .btn{appearance:none;border:1px solid transparent;border-radius:12px;font-family:inherit;font-size:14px;font-weight:650;padding:10px 14px;background:#ecebe2;color:var(--fg);display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}
+  .btn svg{width:17px;height:17px}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  #storage-warning{padding-top:12px;color:var(--danger);font-weight:600}
+  [hidden]{display:none !important}
+  .btn-primary{background:var(--primary);color:#f7f3ea}
+  .btn-accent{background:var(--accent);color:#2a1c05}
+  .btn-ghost{background:transparent;border-color:var(--line)}
+  .btn-danger{background:#f7e5e0;color:var(--danger)}
+  .btn-block{width:100%}
+  .btn-sm{padding:7px 10px;font-size:12.5px;border-radius:10px}
+  .icon-btn{background:#f2f0e8;border:0;border-radius:10px;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;color:var(--fg)}
+  .icon-btn svg{width:16px;height:16px}
+  .row-actions{display:flex;gap:6px;align-items:center}
+
+  /* listas */
+  .list{display:flex;flex-direction:column}
+  .item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+  .item:last-child{border-bottom:0}
+  .item .grow{flex:1;min-width:0}
+  .item .nome{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .item .sub{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .val{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+
+  /* pílulas */
+  .pills{display:flex;gap:6px;overflow-x:auto;padding:2px 0 6px;-ms-overflow-style:none;scrollbar-width:none}
+  .pills::-webkit-scrollbar{display:none}
+  .pill{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 12px;font-size:12.5px;font-weight:650;font-family:inherit;color:var(--muted);white-space:nowrap}
+  .pill.on{background:var(--primary);color:#f7f3ea;border-color:var(--primary)}
+  .tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 7px;border-radius:999px;background:#eef1ec;color:var(--primary2)}
+
+  /* grade de produtos */
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .pcard{background:#fff;border:1px solid var(--line);border-radius:14px;padding:11px;text-align:left;font-family:inherit;color:inherit;cursor:pointer}
+  .pcard .n{font-weight:650;font-size:13.5px;line-height:1.25;min-height:34px}
+  .pcard .p{font-weight:800;font-size:15px;margin-top:4px}
+  .pcard:active{border-color:var(--primary)}
+
+  /* carrinho */
+  .cart-line{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}
+  .qty{display:flex;align-items:center;gap:6px}
+  .qty b{min-width:18px;text-align:center;font-variant-numeric:tabular-nums}
+  .totalbar{display:flex;align-items:center;justify-content:space-between;margin-top:10px}
+  .totalbar .v{font-size:22px;font-weight:800;letter-spacing:-.02em}
+
+  .formas{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  .forma{border:1px solid var(--line);background:#fff;border-radius:12px;padding:9px 4px;font-size:12px;font-weight:650;font-family:inherit;color:var(--muted)}
+  .forma.on{background:var(--primary);color:#f7f3ea;border-color:var(--primary)}
+  .forma.fiado.on{background:var(--accent);color:#2a1c05;border-color:var(--accent)}
+
+  /* campos */
+  .lbl{display:block;font-size:12px;font-weight:700;color:var(--muted);margin:12px 0 5px;text-transform:uppercase;letter-spacing:.03em}
+  .input{width:100%;font-family:inherit;font-size:16px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--fg)}
+  .input:focus{outline:2px solid rgba(29,88,68,.35);outline-offset:1px}
+  select.input{appearance:none;background-image:none}
+  textarea.input{min-height:64px;resize:vertical;font-size:15px}
+  .check{display:flex;align-items:center;gap:8px;margin-top:14px;font-size:13.5px;font-weight:600}
+  .check input{width:18px;height:18px;accent-color:var(--primary)}
+
+  /* modal */
+  .modal{position:fixed;inset:0;background:rgba(10,20,16,.5);z-index:40;display:flex;align-items:flex-end;justify-content:center}
+  .modal[hidden]{display:none}
+  .sheet{background:#fff;width:100%;max-width:620px;border-radius:20px 20px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));max-height:88vh;overflow:auto}
+  .sheet h3{font-size:17px;font-weight:750}
+  .modal-actions{display:flex;gap:8px;margin-top:18px}
+  .modal-actions .btn{flex:1}
+  @media(min-width:640px){
+    .modal{align-items:center}
+    .sheet{border-radius:20px;max-width:520px;padding-bottom:18px}
+  }
+
+  /* abas */
+  .tabs{position:fixed;bottom:0;left:0;right:0;z-index:25;background:#fff;border-top:1px solid var(--line);display:flex;padding:6px 4px calc(6px + env(safe-area-inset-bottom));box-shadow:0 -6px 20px rgba(18,33,27,.07)}
+  .tabs button{flex:1;background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;font-size:11px;font-weight:650;color:var(--muted);border-radius:12px;font-family:inherit}
+  .tabs button svg{width:22px;height:22px}
+  .tabs button.on{color:var(--primary)}
+
+  /* toast */
+  .toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translate(-50%,16px);background:#12211b;color:#f7f3ea;font-size:13px;font-weight:600;padding:10px 16px;border-radius:12px;opacity:0;pointer-events:none;transition:.2s;z-index:50;max-width:88vw;text-align:center}
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+
+  .empty{border:1px dashed var(--line);border-radius:16px;padding:26px 18px;text-align:center;background:rgba(255,255,255,.6)}
+  .empty p{margin:0}
+  .empty .t{font-weight:650;font-size:14px}
+  .empty .d{font-size:12.5px;color:var(--muted);margin-top:4px}
+
+  .menu-row{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--line);width:100%;background:none;border-left:0;border-right:0;border-top:0;font-family:inherit;color:inherit;text-align:left}
+  .menu-row:last-child{border-bottom:0}
+  .menu-row .ic{width:34px;height:34px;border-radius:10px;background:#f1efe6;display:flex;align-items:center;justify-content:center;color:var(--primary2);flex:none}
+  .menu-row .ic svg{width:18px;height:18px}
+
+  table.rep{width:100%;border-collapse:collapse;font-size:13.5px}
+  table.rep td{padding:7px 0;border-bottom:1px solid var(--line)}
+  table.rep tr:last-child td{border-bottom:0}
+  table.rep td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:650}
+
+  @media print{
+    .top,.tabs,.no-print,.toast{display:none !important}
+    body{background:#fff;padding:0}
+    .hero{background:#fff !important;color:#000 !important;border:1px solid #ccc}
+    .hero .mini > div{background:#f4f4f4 !important;color:#000}
+    .card{border-color:#ccc;break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-wallet" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0 0 4h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5"/><path d="M16 12.5h.01"/></symbol>
+    <symbol id="i-cart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h2l2.6 12.4A2 2 0 0 0 8.6 17H19a2 2 0 0 0 2-1.6L22 8H6"/></symbol>
+    <symbol id="i-notebook" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h8a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/><path d="M9 8h6M9 12h6M9 16h3"/></symbol>
+    <symbol id="i-box" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v8l-9 5-9-5V8l9-5 9 5Z"/><path d="M3.4 8 12 13l8.6-5"/><path d="M12 13v8"/></symbol>
+    <symbol id="i-more" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.4"/><path d="M2.6 20.5a6.4 6.4 0 0 1 12.8 0"/><path d="M16.8 5.6a3.2 3.2 0 0 1 0 6.4"/><path d="M18.4 14.6A5.6 5.6 0 0 1 21.4 20"/></symbol>
+    <symbol id="i-receipt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h14v18l-3-2-2 2-2-2-2 2-3-2Z"/><path d="M9 8h6M9 12h6"/></symbol>
+    <symbol id="i-cash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/></symbol>
+    <symbol id="i-cloud" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 17.5a4.2 4.2 0 0 0 .4-8.4 6 6 0 0 0-11.6 1.5A3.6 3.6 0 0 0 6.4 17.5Z"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M4 21h16"/></symbol>
+    <symbol id="i-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V9"/><path d="m7 13 5-5 5 5"/><path d="M4 4h16"/></symbol>
+    <symbol id="i-print" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 17h12v4H6z"/></symbol>
+    <symbol id="i-trophy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h8v5a4 4 0 0 1-8 0Z"/><path d="M8 4.5H5V7a3 3 0 0 0 3 3"/><path d="M16 4.5h3V7a3 3 0 0 1-3 3"/><path d="M10 16h4M9 21h6"/></symbol>
+  </defs>
+</svg>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <svg><use href="#i-trophy"/></svg>
+      <span>Caixa do Campeonato</span>
+    </div>
+    <select id="sel-camp" aria-label="Campeonato"></select>
+  </div>
+</header>
+
+<p id="storage-warning" class="wrap small" role="alert" hidden></p>
+<noscript><p class="wrap">Abra este arquivo em um navegador com JavaScript habilitado, não no visualizador de documentos.</p></noscript>
+<main class="wrap" id="view"></main>
+
+<nav class="tabs">
+  <button data-nav="caixa"><svg><use href="#i-wallet"/></svg><span>Caixa</span></button>
+  <button data-nav="vender"><svg><use href="#i-cart"/></svg><span>Vender</span></button>
+  <button data-nav="fiado"><svg><use href="#i-notebook"/></svg><span>Fiado</span></button>
+  <button data-nav="itens"><svg><use href="#i-box"/></svg><span>Itens</span></button>
+  <button data-nav="mais"><svg><use href="#i-more"/></svg><span>Mais</span></button>
+</nav>
+
+<div class="modal" id="modal" hidden><div class="sheet" id="sheet"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ================= guarda os dados ================= */
+  var LS = 'caixa_camp_v1';
+  var LS_SNAP = 'caixa_camp_snap_v1';
+  var CATS = {bebida:'Bebida', comida:'Comida', outro:'Outro'};
+  var FORMAS = {dinheiro:'Dinheiro', pix:'Pix', cartao:'Cartão', fiado:'Fiado'};
+  var DCATS = {mercadoria:'Mercadoria', transporte:'Transporte', alimentacao:'Alimentação', equipamento:'Equipamento', taxa:'Taxa', outro:'Outro'};
+
+  function vazio(){
+    return {campeonatos:[], produtos:[], clientes:[], vendas:[], recebimentos:[], despesas:[], camp_atual:null};
+  }
+  var problemaArmazenamento = '';
+  function dadosValidos(d){
+    if(!d || typeof d !== 'object' || !Array.isArray(d.campeonatos)) return false;
+    var campos = ['campeonatos','produtos','clientes','vendas','recebimentos','despesas'];
+    return campos.every(function(k){
+      return (d[k] === undefined || Array.isArray(d[k])) && (d[k] || []).every(function(x){
+        return x && typeof x === 'object' && typeof x.id === 'string'
+          && (k !== 'vendas' || (Array.isArray(x.itens) && x.itens.every(function(it){ return it && typeof it === 'object'; })));
+      });
+    });
+  }
+  function carregar(){
+    try{
+      var raw = localStorage.getItem(LS);
+      if(raw){
+        var d = JSON.parse(raw);
+        if(dadosValidos(d)){
+          var base = vazio();
+          for(var k in base){ if(d[k] === undefined || d[k] === null) d[k] = base[k]; }
+          return d;
+        }
+        throw new Error('Backup local inválido');
+      }
+    }catch(e){ problemaArmazenamento = 'Não foi possível ler os dados salvos. Restaure um backup antes de continuar.'; }
+    return vazio();
+  }
+  var db = carregar();
+  var ultimoSalvo = JSON.stringify(db);
+  var state = {tela:'caixa', cat:'todos', carrinho:[], forma:'dinheiro', clienteVenda:'', busca:'', filtroVendas:''};
+
+  function mostrarAviso(){
+    var aviso = document.getElementById('storage-warning');
+    aviso.textContent = problemaArmazenamento;
+    aviso.hidden = !problemaArmazenamento;
+  }
+  function salvar(){
+    try{
+      localStorage.setItem(LS, JSON.stringify(db));
+      ultimoSalvo = JSON.stringify(db);
+      problemaArmazenamento = '';
+      mostrarAviso();
+    }catch(e){
+      db = JSON.parse(ultimoSalvo);
+      problemaArmazenamento = 'Não foi possível salvar neste navegador. Mantenha o app aberto e baixe um backup; use o navegador normal, fora do modo privado.';
+      mostrarAviso();
+      var erro = new Error('Alteração não salva. Verifique o aviso acima.');
+      erro.salvamentoLocal = true;
+      throw erro;
+    }
+  }
+  function executar(fn){
+    try{ fn(); }
+    catch(e){ if(!e.salvamentoLocal) throw e; toast(e.message); render(); }
+  }
+
+  /* cópia automática do dia, guardada no aparelho */
+  function snapshot(){
+    try{
+      var s = JSON.parse(localStorage.getItem(LS_SNAP) || '{"lista":[]}');
+      var hoje = isoHoje();
+      if(s.lista && s.lista[0] && s.lista[0].dia === hoje) return;
+      s.lista = s.lista || [];
+      s.lista.unshift({dia:hoje, quando:new Date().toISOString(), dados:JSON.parse(JSON.stringify(db))});
+      s.lista = s.lista.slice(0,3);
+      localStorage.setItem(LS_SNAP, JSON.stringify(s));
+    }catch(e){}
+  }
+
+  /* ================= utilidades ================= */
+  function esc(s){
+    return String(s === undefined || s === null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+  function r2(n){ return Math.round((Number(n)||0) * 100) / 100; }
+  function brl(n){ return r2(n).toLocaleString('pt-BR', {style:'currency', currency:'BRL'}); }
+  function num(v){
+    if(typeof v === 'number') return isFinite(v) ? v : 0;
+    var s = String(v === undefined || v === null ? '' : v).replace(/[^\d.,-]/g,'');
+    if(!s) return 0;
+    if(s.indexOf(',') > -1) s = s.replace(/\./g,'').replace(',','.');
+    var n = parseFloat(s);
+    return isFinite(n) ? n : 0;
+  }
+  function isoHoje(){
+    var d = new Date();
+    var t = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+    return t.toISOString().slice(0,10);
+  }
+  function dataBR(s){
+    if(!s) return '';
+    var d = new Date(s);
+    if(isNaN(d)) return '';
+    return d.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'});
+  }
+  function horaBR(s){
+    if(!s) return '';
+    var d = new Date(s);
+    if(isNaN(d)) return '';
+    return d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+  }
+  function dataLonga(s){
+    if(!s) return '';
+    var p = String(s).slice(0,10).split('-');
+    if(p.length !== 3) return s;
+    return p[2] + '/' + p[1] + '/' + p[0];
+  }
+  function val(id){
+    var el = document.getElementById(id);
+    return el ? el.value : '';
+  }
+  var toastTimer = null;
+  function toast(msg){
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2400);
+  }
+
+  /* ================= contas ================= */
+  function campAtual(){
+    for(var i=0;i<db.campeonatos.length;i++){
+      if(db.campeonatos[i].id === db.camp_atual) return db.campeonatos[i];
+    }
+    return null;
+  }
+  function vendasDe(id){ return db.vendas.filter(function(v){ return v.camp_id === id; }); }
+  function recebDe(id){ return db.recebimentos.filter(function(r){ return r.camp_id === id; }); }
+  function despesasDe(id){ return db.despesas.filter(function(d){ return d.camp_id === id; }); }
+  function saldoVenda(v){ return r2((v.total||0) - (v.valor_pago||0)); }
+  function periodo(c){
+    if(!c) return '';
+    if(c.inicio && c.fim) return dataLonga(c.inicio) + ' a ' + dataLonga(c.fim);
+    if(c.inicio) return 'desde ' + dataLonga(c.inicio);
+    return '';
+  }
+  function resumo(c){
+    var out = {avista:0, recebido:0, receitas:0, despesas:0, saldo:0, fiado:0, qtd:0,
+               porForma:{dinheiro:0, pix:0, cartao:0}, despesasPorCat:{}, maisVendidos:[]};
+    if(!c) return out;
+    var vs = vendasDe(c.id), rs = recebDe(c.id), ds = despesasDe(c.id), i, v;
+    var mapa = {};
+    for(i=0;i<vs.length;i++){
+      v = vs[i];
+      if(v.status === 'cancelada') continue;
+      out.qtd++;
+      if(v.forma === 'fiado'){
+        out.fiado = r2(out.fiado + Math.max(0, saldoVenda(v)));
+      }else{
+        out.avista = r2(out.avista + (v.total||0));
+        out.porForma[v.forma] = r2((out.porForma[v.forma]||0) + (v.total||0));
+      }
+      var itens = v.itens || [];
+      for(var j=0;j<itens.length;j++){
+        var it = itens[j];
+        var k = it.produto_id || it.nome;
+        if(!mapa[k]) mapa[k] = {nome:it.nome, qtd:0, valor:0};
+        mapa[k].qtd += (it.qtd||0);
+        mapa[k].valor = r2(mapa[k].valor + (it.preco||0) * (it.qtd||0));
+      }
+    }
+    for(i=0;i<rs.length;i++){
+      out.recebido = r2(out.recebido + (rs[i].valor||0));
+      out.porForma[rs[i].forma] = r2((out.porForma[rs[i].forma]||0) + (rs[i].valor||0));
+    }
+    for(i=0;i<ds.length;i++){
+      out.despesas = r2(out.despesas + (ds[i].valor||0));
+      out.despesasPorCat[ds[i].categoria] = r2((out.despesasPorCat[ds[i].categoria]||0) + (ds[i].valor||0));
+    }
+    out.receitas = r2(out.avista + out.recebido);
+    out.saldo = r2(out.receitas - out.despesas);
+    out.maisVendidos = Object.keys(mapa).map(function(k){ return mapa[k]; })
+      .sort(function(a,b){ return b.qtd - a.qtd; });
+    return out;
+  }
+  function fiadoPorCliente(c){
+    var m = {}, out = [];
+    if(!c) return out;
+    var vs = vendasDe(c.id);
+    for(var i=0;i<vs.length;i++){
+      var v = vs[i];
+      if(v.forma !== 'fiado' || v.status === 'cancelada') continue;
+      var s = saldoVenda(v);
+      if(s <= 0.005) continue;
+      var k = v.cliente_id || ('n:' + (v.cliente_nome||''));
+      if(!m[k]) m[k] = {cliente_id:v.cliente_id||'', nome:v.cliente_nome||'Sem nome', saldo:0, vendas:0};
+      m[k].saldo = r2(m[k].saldo + s);
+      m[k].vendas++;
+    }
+    for(var kk in m) out.push(m[kk]);
+    out.sort(function(a,b){ return b.saldo - a.saldo; });
+    return out;
+  }
+  function saldoCliente(clienteId){
+    var total = 0;
+    for(var i=0;i<db.vendas.length;i++){
+      var v = db.vendas[i];
+      if(v.forma === 'fiado' && v.status !== 'cancelada' && v.cliente_id === clienteId) total += Math.max(0, saldoVenda(v));
+    }
+    return r2(total);
+  }
+  function carrinhoTotal(){
+    var t = 0;
+    for(var i=0;i<state.carrinho.length;i++) t += state.carrinho[i].preco * state.carrinho[i].qtd;
+    return r2(t);
+  }
+  function carrinhoQtd(){
+    var q = 0;
+    for(var i=0;i<state.carrinho.length;i++) q += state.carrinho[i].qtd;
+    return q;
+  }
+  function clientePorId(id){
+    for(var i=0;i<db.clientes.length;i++) if(db.clientes[i].id === id) return db.clientes[i];
+    return null;
+  }
+  function produtoPorId(id){
+    for(var i=0;i<db.produtos.length;i++) if(db.produtos[i].id === id) return db.produtos[i];
+    return null;
+  }
+
+  /* ================= telas ================= */
+  function semCamp(){
+    return '<div class="empty" style="margin-top:16px">'
+      + '<p class="t">Nenhum campeonato cadastrado</p>'
+      + '<p class="d">Cadastre o campeonato com o primeiro e o último dia de vendas para começar.</p>'
+      + '<button class="btn btn-primary" style="margin-top:14px" data-act="novo-camp">Cadastrar campeonato</button>'
+      + '</div>';
+  }
+
+  function telaCaixa(){
+    var c = campAtual();
+    if(!c) return semCamp();
+    var r = resumo(c);
+    var vs = vendasDe(c.id).slice().sort(function(a,b){ return new Date(b.data) - new Date(a.data); }).slice(0,5);
+    var fiados = fiadoPorCliente(c);
+    var hojeStr = new Date().toDateString();
+    var hoje = vendasDe(c.id).filter(function(v){ return new Date(v.data).toDateString() === hojeStr && v.status !== 'cancelada'; });
+    var hVendas = 0, hItens = 0;
+    for(var i=0;i<hoje.length;i++){ hVendas += (hoje[i].total||0); hItens += (hoje[i].itens_qtd||0); }
+
+    var html = '<div class="hero">'
+      + '<div class="small" style="opacity:.72;font-weight:650">' + esc(c.nome) + '</div>'
+      + '<div class="small" style="opacity:.55;margin-top:2px">' + esc(periodo(c) || 'sem período definido') + '</div>'
+      + '<div class="small" style="opacity:.72;margin-top:12px">Dinheiro no caixa</div>'
+      + '<div class="saldo tabular">' + brl(r.saldo) + '</div>'
+      + '<div class="mini">'
+      +   '<div><span class="small" style="opacity:.7">Entrou</span><b class="tabular">' + brl(r.receitas) + '</b></div>'
+      +   '<div><span class="small" style="opacity:.7">Saiu</span><b class="tabular">' + brl(r.despesas) + '</b></div>'
+      +   '<div><span class="small" style="opacity:.7">Fiado</span><b class="tabular">' + brl(r.fiado) + '</b></div>'
+      + '</div></div>';
+
+    html += '<div class="stack" style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+      + '<button class="btn btn-accent btn-block" data-nav="vender"><svg><use href="#i-cart"/></svg>Nova venda</button>'
+      + '<button class="btn btn-ghost btn-block" data-act="nova-despesa"><svg><use href="#i-receipt"/></svg>Despesa</button>'
+      + '</div>';
+
+    html += '<div class="card" style="margin-top:12px"><div class="item" style="border:0;padding:0">'
+      + '<div class="grow"><div class="nome">Hoje</div><div class="sub">' + hoje.length + ' venda(s) · ' + hItens + ' item(ns)</div></div>'
+      + '<div class="val tabular">' + brl(hVendas) + '</div></div></div>';
+
+    html += '<div class="sec-title"><h2>Últimas vendas</h2><button data-nav="vendas">Ver todas</button></div>';
+    if(!vs.length){
+      html += '<div class="empty"><p class="t">Nenhuma venda ainda</p><p class="d">Toque em “Nova venda” para começar.</p></div>';
+    }else{
+      html += '<div class="card"><div class="list">';
+      for(var k=0;k<vs.length;k++){
+        var v = vs[k];
+        html += '<div class="item" data-act="ver-venda" data-id="' + v.id + '" style="cursor:pointer">'
+          + '<div class="grow"><div class="nome">' + esc(v.cliente_nome || 'Balcão') + '</div>'
+          + '<div class="sub">' + esc(v.itens_resumo || '') + '</div></div>'
+          + '<div style="text-align:right"><div class="val tabular">' + brl(v.total) + '</div>'
+          + '<div class="sub">' + esc(FORMAS[v.forma] || v.forma) + (v.forma==='fiado' ? ' · devendo ' + brl(saldoVenda(v)) : '') + '</div></div>'
+          + '</div>';
+      }
+      html += '</div></div>';
+    }
+
+    html += '<div class="sec-title"><h2>Quem está devendo</h2><button data-nav="fiado">Ver todos</button></div>';
+    if(!fiados.length){
+      html += '<div class="empty"><p class="t">Ninguém devendo</p><p class="d">As vendas fiado aparecem aqui até serem pagas.</p></div>';
+    }else{
+      html += '<div class="card"><div class="list">';
+      for(var m=0;m<Math.min(4, fiados.length);m++){
+        var f = fiados[m];
+        html += '<div class="item"><div class="grow"><div class="nome">' + esc(f.nome) + '</div>'
+          + '<div class="sub">' + f.vendas + ' venda(s) em aberto</div></div>'
+          + '<div class="val tabular">' + brl(f.saldo) + '</div>'
+          + '<button class="btn btn-sm btn-primary" data-act="receber" data-id="' + esc(f.cliente_id) + '" data-nome="' + esc(f.nome) + '">Receber</button></div>';
+      }
+      html += '</div></div>';
+    }
+    return html;
+  }
+
+  function telaVender(){
+    var c = campAtual();
+    if(!c) return semCamp();
+    var prods = db.produtos.filter(function(p){ return p.ativo !== false; });
+    var html = '';
+
+    if(!prods.length){
+      html += '<div class="empty" style="margin-top:14px"><p class="t">Cadastre seus itens primeiro</p>'
+        + '<p class="d">Bebida, comida ou qualquer coisa que você vende, com o preço de venda.</p>'
+        + '<button class="btn btn-primary" style="margin-top:14px" data-nav="itens">Cadastrar itens</button></div>';
+      return html;
+    }
+
+    html += '<label class="lbl" for="v-busca">Buscar item</label><input class="input" id="v-busca" type="search" value="' + esc(state.busca) + '" placeholder="Buscar item…">';
+    var cats = ['todos'].concat(Object.keys(CATS));
+    html += '<div class="pills" style="margin-top:12px">';
+    for(var i=0;i<cats.length;i++){
+      html += '<button class="pill ' + (state.cat === cats[i] ? 'on' : '') + '" data-act="cat" data-id="' + cats[i] + '">'
+        + (cats[i] === 'todos' ? 'Todos' : CATS[cats[i]]) + '</button>';
+    }
+    html += '</div>';
+
+    var lista = state.cat === 'todos' ? prods : prods.filter(function(p){ return p.categoria === state.cat; });
+    html += '<div class="grid">';
+    for(var p=0;p<lista.length;p++){
+      var pr = lista[p];
+      html += '<button class="pcard" data-busca="' + esc(pr.nome.toLocaleLowerCase('pt-BR')) + '" data-act="add" data-id="' + pr.id + '">'
+        + '<div class="n">' + esc(pr.nome) + '</div>'
+        + '<div class="p tabular">' + brl(pr.preco) + '</div></button>';
+    }
+    html += '</div><p class="small muted" id="busca-vazia" hidden>Nenhum item encontrado.</p>';
+
+    /* carrinho */
+    var total = carrinhoTotal();
+    html += '<div class="card" style="margin-top:14px">';
+    if(!state.carrinho.length){
+      html += '<p class="small muted" style="margin:0;text-align:center">Toque nos itens acima para montar a venda.</p>';
+    }else{
+      html += '<div class="list">';
+      for(var q=0;q<state.carrinho.length;q++){
+        var it = state.carrinho[q];
+        html += '<div class="cart-line">'
+          + '<div class="grow" style="flex:1;min-width:0"><div class="nome" style="font-weight:600;font-size:14px">' + esc(it.nome) + '</div>'
+          + '<div class="sub">' + brl(it.preco) + ' cada</div></div>'
+          + '<div class="qty">'
+          +   '<button class="icon-btn" data-act="menos" data-id="' + it.produto_id + '"><svg><use href="#i-minus"/></svg></button>'
+          +   '<b>' + it.qtd + '</b>'
+          +   '<button class="icon-btn" data-act="mais" data-id="' + it.produto_id + '"><svg><use href="#i-plus"/></svg></button>'
+          + '</div>'
+          + '<div class="val tabular" style="min-width:74px;text-align:right">' + brl(it.preco * it.qtd) + '</div>'
+          + '</div>';
+      }
+      html += '</div>';
+      html += '<div class="totalbar"><span class="small muted">' + carrinhoQtd() + ' item(ns)</span><span class="v tabular">' + brl(total) + '</span></div>';
+    }
+    html += '</div>';
+
+    html += '<div class="sec-title"><h2>Como o cliente paga</h2></div>';
+    html += '<div class="formas">';
+    var formas = ['dinheiro','pix','cartao','fiado'];
+    for(var f=0;f<formas.length;f++){
+      html += '<button class="forma ' + (formas[f]==='fiado'?'fiado':'') + ' ' + (state.forma===formas[f]?'on':'') + '" data-act="forma" data-id="' + formas[f] + '">' + FORMAS[formas[f]] + '</button>';
+    }
+    html += '</div>';
+
+    if(state.forma === 'fiado'){
+      var clientes = db.clientes.slice().sort(function(a,b){ return String(a.nome).localeCompare(String(b.nome)); });
+      html += '<div style="margin-top:12px">';
+      if(!clientes.length){
+        html += '<div class="empty" style="padding:16px"><p class="d">Nenhum cliente cadastrado ainda.</p>'
+          + '<button class="btn btn-sm btn-primary" style="margin-top:10px" data-act="novo-cliente" data-volta="vender">Cadastrar cliente</button></div>';
+      }else{
+        html += '<label class="lbl">Cliente do fiado</label><select class="input" id="v-cliente">'
+          + '<option value="">Escolha o cliente…</option>';
+        for(var cc=0; cc<clientes.length; cc++){
+          var cl = clientes[cc];
+          html += '<option value="' + cl.id + '"' + (state.clienteVenda === cl.id ? ' selected' : '') + '>' + esc(cl.nome) + '</option>';
+        }
+        html += '</select>';
+        html += '<button class="btn btn-ghost btn-block btn-sm" style="margin-top:8px" data-act="novo-cliente" data-volta="vender"><svg><use href="#i-plus"/></svg>Novo cliente</button>';
+      }
+      html += '</div>';
+    }
+
+    var pode = state.carrinho.length > 0 && (state.forma !== 'fiado' || !!state.clienteVenda);
+    html += '<div style="margin-top:14px">'
+      + '<button class="btn btn-primary btn-block" data-act="finalizar"' + (pode ? '' : ' disabled') + '>'
+      + 'Finalizar venda · ' + brl(total) + '</button></div>';
+    return html;
+  }
+
+  function telaVendas(){
+    if(!campAtual()) return semCamp();
+    var filtro = state.filtroVendas || db.camp_atual;
+    var lista = (filtro === 'todos' ? db.vendas : vendasDe(filtro)).slice().sort(function(a,b){ return new Date(b.data) - new Date(a.data); });
+    var validas = lista.filter(function(v){ return v.status !== 'cancelada'; });
+    var total = validas.reduce(function(s,v){ return r2(s + v.total); },0);
+    var aberto = validas.reduce(function(s,v){ return r2(s + Math.max(0,saldoVenda(v))); },0);
+    var h = '<div class="sec-title"><h2>Histórico de vendas</h2><button data-nav="vender">Nova venda</button></div>'
+      + '<label class="lbl" for="filtro-vendas">Campeonato</label><select class="input" id="filtro-vendas"><option value="todos"' + (filtro === 'todos' ? ' selected' : '') + '>Todos os campeonatos</option>';
+    db.campeonatos.forEach(function(c){ h += '<option value="' + esc(c.id) + '"' + (filtro === c.id ? ' selected' : '') + '>' + esc(c.nome) + '</option>'; });
+    h += '</select><p class="small muted">' + validas.length + ' venda(s) · ' + brl(total) + ' · ' + brl(aberto) + ' em aberto</p>';
+    if(!lista.length) return h + '<div class="empty"><p class="t">Nenhuma venda registrada</p><p class="d">As vendas deste campeonato aparecerão aqui.</p></div>';
+    h += '<div class="card"><div class="list">';
+    lista.forEach(function(v){
+      h += '<button class="menu-row" data-act="ver-venda" data-id="' + esc(v.id) + '"><span class="grow"><span class="nome">' + esc(v.cliente_nome || 'Balcão') + '</span><span class="sub" style="display:block">' + dataBR(v.data) + ' ' + horaBR(v.data) + ' · ' + esc(v.itens_resumo) + '</span></span>'
+        + '<span style="text-align:right"><span class="val">' + brl(v.total) + '</span><span class="sub" style="display:block">' + esc(FORMAS[v.forma]) + ' · ' + esc(v.status === 'cancelada' ? 'cancelada' : saldoVenda(v) > 0 ? 'pendente' : 'paga') + '</span></span></button>';
+    });
+    return h + '</div></div>';
+  }
+
+  function telaFiado(){
+    var c = campAtual();
+    if(!c) return semCamp();
+    var fiados = fiadoPorCliente(c);
+    var total = 0;
+    for(var i=0;i<fiados.length;i++) total += fiados[i].saldo;
+    var html = '<div class="card" style="margin-top:14px"><div class="item" style="border:0;padding:0">'
+      + '<div class="grow"><div class="nome">Fiado em aberto</div><div class="sub">' + fiados.length + ' cliente(s)</div></div>'
+      + '<div class="val tabular" style="font-size:18px">' + brl(total) + '</div></div></div>';
+
+    if(!fiados.length){
+      html += '<div class="empty" style="margin-top:12px"><p class="t">Ninguém devendo</p>'
+        + '<p class="d">Quando você vende fiado, o nome e o valor ficam aqui até o pagamento.</p>'
+        + '<button class="btn btn-primary" style="margin-top:14px" data-nav="vender">Fazer uma venda</button></div>';
+      return html;
+    }
+
+    html += '<div class="sec-title"><h2>Quem deve</h2></div><div class="card"><div class="list">';
+    for(var k=0;k<fiados.length;k++){
+      var f = fiados[k];
+      var tel = '';
+      if(f.cliente_id){
+        var cl = clientePorId(f.cliente_id);
+        if(cl && cl.telefone) tel = cl.telefone;
+      }
+      html += '<div class="item"><div class="grow"><div class="nome">' + esc(f.nome) + '</div>'
+        + '<div class="sub">' + f.vendas + ' venda(s) em aberto' + (tel ? ' · ' + esc(tel) : '') + '</div></div>'
+        + '<div class="val tabular">' + brl(f.saldo) + '</div>'
+        + '<button class="btn btn-sm btn-primary" data-act="receber" data-id="' + esc(f.cliente_id) + '" data-nome="' + esc(f.nome) + '">Receber</button></div>';
+    }
+    html += '</div></div>';
+    return html;
+  }
+
+  function telaItens(){
+    var html = '<div class="sec-title" style="margin-top:14px"><h2>Itens que você vende</h2>'
+      + '<button data-act="novo-produto"><svg style="width:13px;height:13px;vertical-align:-2px"><use href="#i-plus"/></svg> Novo</button></div>';
+    if(!db.produtos.length){
+      html += '<div class="empty"><p class="t">Nenhum item cadastrado</p>'
+        + '<p class="d">Cadastre o que você vende e o preço. Pode ser qualquer coisa.</p>'
+        + '<button class="btn btn-primary" style="margin-top:14px" data-act="novo-produto">Cadastrar primeiro item</button></div>';
+      return html;
+    }
+    html += '<div class="card"><div class="list">';
+    for(var i=0;i<db.produtos.length;i++){
+      var p = db.produtos[i];
+      html += '<div class="item">'
+        + '<div class="grow"><div class="nome">' + esc(p.nome) + (p.ativo === false ? ' <span class="tag">oculto</span>' : '') + '</div>'
+        + '<div class="sub">' + esc(CATS[p.categoria] || 'Outro') + '</div></div>'
+        + '<div class="val tabular">' + brl(p.preco) + '</div>'
+        + '<div class="row-actions">'
+        +   '<button class="icon-btn" data-act="edit-produto" data-id="' + p.id + '"><svg><use href="#i-edit"/></svg></button>'
+        +   '<button class="icon-btn" data-act="del-produto" data-id="' + p.id + '"><svg><use href="#i-trash"/></svg></button>'
+        + '</div></div>';
+    }
+    html += '</div></div>';
+    return html;
+  }
+
+  function telaClientes(){
+    var html = '<div class="sec-title" style="margin-top:14px"><h2>Clientes</h2>'
+      + '<button data-act="novo-cliente"><svg style="width:13px;height:13px;vertical-align:-2px"><use href="#i-plus"/></svg> Novo</button></div>';
+    if(!db.clientes.length){
+      html += '<div class="empty"><p class="t">Nenhum cliente cadastrado</p>'
+        + '<p class="d">Cadastre quem costuma comprar fiado para não perder a conta.</p>'
+        + '<button class="btn btn-primary" style="margin-top:14px" data-act="novo-cliente">Cadastrar cliente</button></div>';
+      return html;
+    }
+    var lista = db.clientes.slice().sort(function(a,b){ return String(a.nome).localeCompare(String(b.nome)); });
+    html += '<div class="card"><div class="list">';
+    for(var i=0;i<lista.length;i++){
+      var c = lista[i];
+      var s = saldoCliente(c.id);
+      html += '<div class="item"><div class="grow"><div class="nome">' + esc(c.nome) + '</div>'
+        + '<div class="sub">' + (c.telefone ? esc(c.telefone) : 'sem telefone') + (s > 0 ? ' · deve ' + brl(s) : ' · sem fiado') + '</div></div>'
+        + (s > 0 ? '<button class="btn btn-sm btn-primary" data-act="receber" data-id="' + esc(c.id) + '" data-nome="' + esc(c.nome) + '">Receber</button>' : '')
+        + '<div class="row-actions">'
+        +   '<button class="icon-btn" data-act="edit-cliente" data-id="' + c.id + '"><svg><use href="#i-edit"/></svg></button>'
+        +   '<button class="icon-btn" data-act="del-cliente" data-id="' + c.id + '"><svg><use href="#i-trash"/></svg></button>'
+        + '</div></div>';
+    }
+    html += '</div></div>';
+    return html;
+  }
+
+  function telaDespesas(){
+    var c = campAtual();
+    if(!c) return semCamp();
+    var ds = despesasDe(c.id).slice().sort(function(a,b){ return String(b.data).localeCompare(String(a.data)); });
+    var total = 0;
+    for(var i=0;i<ds.length;i++) total += ds[i].valor || 0;
+    var html = '<div class="sec-title" style="margin-top:14px"><h2>Despesas</h2>'
+      + '<button data-act="nova-despesa"><svg style="width:13px;height:13px;vertical-align:-2px"><use href="#i-plus"/></svg> Nova</button></div>';
+    html += '<div class="card"><div class="item" style="border:0;padding:0"><div class="grow"><div class="nome">Total gasto</div>'
+      + '<div class="sub">' + ds.length + ' lançamento(s)</div></div><div class="val tabular" style="font-size:18px">' + brl(total) + '</div></div></div>';
+    if(!ds.length){
+      html += '<div class="empty" style="margin-top:12px"><p class="t">Nenhuma despesa lançada</p>'
+        + '<p class="d">Gelo, mercadoria, transporte: tudo que sair do caixa entra aqui.</p>'
+        + '<button class="btn btn-primary" style="margin-top:14px" data-act="nova-despesa">Lançar despesa</button></div>';
+      return html;
+    }
+    html += '<div class="card" style="margin-top:10px"><div class="list">';
+    for(var k=0;k<ds.length;k++){
+      var d = ds[k];
+      html += '<div class="item"><div class="grow"><div class="nome">' + esc(d.descricao) + '</div>'
+        + '<div class="sub">' + esc(DCATS[d.categoria] || 'Outro') + ' · ' + dataLonga(d.data) + '</div></div>'
+        + '<div class="val tabular">' + brl(d.valor) + '</div>'
+        + '<div class="row-actions"><button class="icon-btn" aria-label="Editar despesa" data-act="edit-despesa" data-id="' + esc(d.id) + '"><svg><use href="#i-edit"/></svg></button><button class="icon-btn" aria-label="Apagar despesa" data-act="del-despesa" data-id="' + esc(d.id) + '"><svg><use href="#i-trash"/></svg></button></div>'
+        + '</div>';
+    }
+    html += '</div></div>';
+    return html;
+  }
+
+  function telaCamp(){
+    var html = '<div class="sec-title" style="margin-top:14px"><h2>Campeonatos</h2>'
+      + '<button data-act="novo-camp"><svg style="width:13px;height:13px;vertical-align:-2px"><use href="#i-plus"/></svg> Novo</button></div>';
+    if(!db.campeonatos.length){
+      html += '<div class="empty"><p class="t">Nenhum campeonato</p>'
+        + '<p class="d">Informe o nome, o local e o primeiro e o último dia de vendas.</p>'
+        + '<button class="btn btn-primary" style="margin-top:14px" data-act="novo-camp">Cadastrar campeonato</button></div>';
+      return html;
+    }
+    html += '<div class="card"><div class="list">';
+    for(var i=0;i<db.campeonatos.length;i++){
+      var c = db.campeonatos[i];
+      var atual = c.id === db.camp_atual;
+      html += '<div class="item"><div class="grow">'
+        + '<div class="nome">' + esc(c.nome) + (atual ? ' <span class="tag">usando</span>' : '') + '</div>'
+        + '<div class="sub">' + esc(periodo(c) || 'sem período') + ' · ' + (c.status === 'encerrado' ? 'encerrado' : 'em andamento') + '</div></div>'
+        + '<div class="row-actions">'
+        + (atual ? '' : '<button class="btn btn-sm btn-ghost" data-act="usar-camp" data-id="' + c.id + '">Usar</button>')
+        + '<button class="icon-btn" data-act="edit-camp" data-id="' + c.id + '"><svg><use href="#i-edit"/></svg></button>'
+        + '<button class="icon-btn" data-act="del-camp" data-id="' + c.id + '"><svg><use href="#i-trash"/></svg></button>'
+        + '</div></div>';
+    }
+    html += '</div></div>';
+    return html;
+  }
+
+  function telaFechar(){
+    var c = campAtual();
+    if(!c) return semCamp();
+    var r = resumo(c);
+    var html = '<div class="hero"><div class="small" style="opacity:.72;font-weight:650">Fechamento do campeonato</div>'
+      + '<div style="font-size:19px;font-weight:750;margin-top:2px">' + esc(c.nome) + '</div>'
+      + '<div class="small" style="opacity:.6;margin-top:2px">' + esc(periodo(c) || 'sem período definido') + '</div>'
+      + '<div class="small" style="opacity:.72;margin-top:12px">Sobrou no caixa</div>'
+      + '<div class="saldo tabular">' + brl(r.saldo) + '</div>'
+      + '<div class="mini">'
+      + '<div><span class="small" style="opacity:.7">Entrou</span><b class="tabular">' + brl(r.receitas) + '</b></div>'
+      + '<div><span class="small" style="opacity:.7">Saiu</span><b class="tabular">' + brl(r.despesas) + '</b></div>'
+      + '<div><span class="small" style="opacity:.7">Fiado</span><b class="tabular">' + brl(r.fiado) + '</b></div>'
+      + '</div></div>';
+
+    html += '<div class="card" style="margin-top:12px"><div class="sec-title" style="margin:0 0 6px"><h2>Receitas por forma</h2></div>'
+      + '<table class="rep">'
+      + '<tr><td>Dinheiro</td><td class="r">' + brl(r.porForma.dinheiro) + '</td></tr>'
+      + '<tr><td>Pix</td><td class="r">' + brl(r.porForma.pix) + '</td></tr>'
+      + '<tr><td>Cartão</td><td class="r">' + brl(r.porForma.cartao) + '</td></tr>'
+      + '<tr><td><b>Total recebido</b></td><td class="r"><b>' + brl(r.receitas) + '</b></td></tr>'
+      + '<tr><td>Ainda em fiado</td><td class="r">' + brl(r.fiado) + '</td></tr>'
+      + '</table></div>';
+
+    var cats = Object.keys(r.despesasPorCat);
+    html += '<div class="card"><div class="sec-title" style="margin:0 0 6px"><h2>Despesas</h2></div>';
+    if(!cats.length){
+      html += '<p class="small muted" style="margin:0">Nenhuma despesa lançada.</p>';
+    }else{
+      html += '<table class="rep">';
+      for(var i=0;i<cats.length;i++){
+        html += '<tr><td>' + esc(DCATS[cats[i]] || 'Outro') + '</td><td class="r">' + brl(r.despesasPorCat[cats[i]]) + '</td></tr>';
+      }
+      html += '<tr><td><b>Total de despesas</b></td><td class="r"><b>' + brl(r.despesas) + '</b></td></tr>';
+      html += '</table>';
+    }
+    html += '</div>';
+
+    html += '<div class="card"><div class="sec-title" style="margin:0 0 6px"><h2>Mais vendidos</h2></div>';
+    if(!r.maisVendidos.length){
+      html += '<p class="small muted" style="margin:0">Nenhuma venda registrada.</p>';
+    }else{
+      html += '<table class="rep">';
+      for(var j=0;j<r.maisVendidos.length;j++){
+        var mv = r.maisVendidos[j];
+        html += '<tr><td>' + esc(mv.nome) + ' <span class="small muted">× ' + mv.qtd + '</span></td><td class="r">' + brl(mv.valor) + '</td></tr>';
+      }
+      html += '</table>';
+    }
+    html += '</div>';
+
+    html += '<div class="card"><div class="item" style="border:0;padding:0">'
+      + '<div class="grow"><div class="nome">Vendas registradas</div><div class="sub">no período do campeonato</div></div>'
+      + '<div class="val tabular">' + r.qtd + '</div></div></div>';
+
+    html += '<div class="stack no-print" style="margin-top:14px">'
+      + '<button class="btn btn-primary btn-block" data-act="imprimir"><svg><use href="#i-print"/></svg>Imprimir ou salvar em PDF</button>'
+      + (c.status === 'encerrado'
+          ? '<button class="btn btn-ghost btn-block" data-act="reabrir-camp">Reabrir campeonato</button>'
+          : '<button class="btn btn-ghost btn-block" data-act="encerrar-camp">Encerrar campeonato</button>')
+      + '</div>';
+    return html;
+  }
+
+  function telaMais(){
+    var c = campAtual();
+    var fiados = fiadoPorCliente(c);
+    var totalFiado = 0;
+    for(var i=0;i<fiados.length;i++) totalFiado += fiados[i].saldo;
+    return '<div class="card" style="margin-top:14px"><div class="list">'
+      + '<button class="menu-row" data-nav="vendas"><span class="ic"><svg><use href="#i-cart"/></svg></span><span style="flex:1"><span style="display:block;font-weight:650">Histórico de vendas</span><span class="small muted">Todas as vendas e pagamentos por venda</span></span><svg style="width:16px;height:16px"><use href="#i-chev"/></svg></button>'
+      + '<button class="menu-row" data-nav="clientes"><span class="ic"><svg><use href="#i-users"/></svg></span>'
+      +   '<span style="flex:1"><span style="display:block;font-weight:650">Clientes</span>'
+      +   '<span class="small muted">' + db.clientes.length + ' cadastrado(s)' + (totalFiado > 0 ? ' · ' + brl(totalFiado) + ' em fiado' : '') + '</span></span>'
+      +   '<svg style="width:16px;height:16px;color:#9aa39d"><use href="#i-chev"/></svg></button>'
+      + '<button class="menu-row" data-nav="despesas"><span class="ic"><svg><use href="#i-receipt"/></svg></span>'
+      +   '<span style="flex:1"><span style="display:block;font-weight:650">Despesas</span>'
+      +   '<span class="small muted">O que saiu do caixa</span></span>'
+      +   '<svg style="width:16px;height:16px;color:#9aa39d"><use href="#i-chev"/></svg></button>'
+      + '<button class="menu-row" data-nav="camp"><span class="ic"><svg><use href="#i-trophy"/></svg></span>'
+      +   '<span style="flex:1"><span style="display:block;font-weight:650">Campeonatos</span>'
+      +   '<span class="small muted">' + db.campeonatos.length + ' cadastrado(s)</span></span>'
+      +   '<svg style="width:16px;height:16px;color:#9aa39d"><use href="#i-chev"/></svg></button>'
+      + '<button class="menu-row" data-nav="fechar"><span class="ic"><svg><use href="#i-cash"/></svg></span>'
+      +   '<span style="flex:1"><span style="display:block;font-weight:650">Fechamento do campeonato</span>'
+      +   '<span class="small muted">Relatório de receitas e despesas</span></span>'
+      +   '<svg style="width:16px;height:16px;color:#9aa39d"><use href="#i-chev"/></svg></button>'
+      + '<button class="menu-row" data-nav="backup"><span class="ic"><svg><use href="#i-cloud"/></svg></span>'
+      +   '<span style="flex:1"><span style="display:block;font-weight:650">Backup e restauração</span>'
+      +   '<span class="small muted">Salvar cópia e restaurar</span></span>'
+      +   '<svg style="width:16px;height:16px;color:#9aa39d"><use href="#i-chev"/></svg></button>'
+      + '</div></div>'
+      + '<p class="small muted" style="text-align:center;margin-top:16px">Funciona sem internet · dados guardados neste aparelho</p>';
+  }
+
+  function telaBackup(){
+    var qtd = db.vendas.length + db.produtos.length + db.clientes.length + db.despesas.length + db.recebimentos.length;
+    return '<div class="sec-title" style="margin-top:14px"><h2>Backup e restauração</h2></div>'
+      + '<div class="card"><div class="item" style="border:0;padding:0">'
+      +   '<div class="grow"><div class="nome">Seus dados neste aparelho</div>'
+      +   '<div class="sub">' + qtd + ' registro(s) · ' + db.campeonatos.length + ' campeonato(s)</div></div>'
+      +   '</div></div>'
+
+      + '<div class="sec-title"><h2>Salvar uma cópia</h2></div>'
+      + '<div class="stack">'
+      + '<button class="btn btn-primary btn-block" data-act="exportar"><svg><use href="#i-down"/></svg>Baixar backup no aparelho</button>'
+      + '<button class="btn btn-ghost btn-block" data-act="importar"><svg><use href="#i-up"/></svg>Restaurar de um backup</button>'
+      + '<input type="file" id="file-import" accept="application/json,.json" style="display:none">'
+      + '</div>'
+      + '<p class="small muted" style="margin-top:10px">Os dados ficam somente neste navegador e aparelho, separados do app online. Abra sempre o mesmo arquivo no mesmo navegador, fora do modo privado, e não limpe os dados do navegador. Baixe backups com frequência; para mudar de aparelho, restaure o backup. Enviar a cópia para outro lugar exige internet.</p>'
+
+      + '<div class="sec-title"><h2>Cópia automática do dia</h2></div>'
+      + '<div class="card"><p class="small muted" style="margin:0">Todo dia, ao abrir o app, ele guarda uma cópia dentro do próprio aparelho (as 3 últimas).</p>'
+      + '<button class="btn btn-ghost btn-block btn-sm" style="margin-top:10px" data-act="restaurar-snap">Restaurar última cópia automática</button></div>'
+
+      + '<div class="sec-title"><h2>Apagar tudo</h2></div>'
+      + '<button class="btn btn-danger btn-block" data-act="limpar"><svg><use href="#i-trash"/></svg>Apagar todos os dados do aparelho</button>'
+      + '<p class="small muted" style="margin-top:16px;text-align:center">Caixa do Campeonato · versão offline</p>';
+  }
+  var TELAS = {
+    caixa: telaCaixa, vender: telaVender, vendas: telaVendas, fiado: telaFiado, itens: telaItens,
+    clientes: telaClientes, despesas: telaDespesas, camp: telaCamp,
+    fechar: telaFechar, mais: telaMais, backup: telaBackup
+  };
+  var TITULO_ABA = {caixa:'caixa', vender:'vender', fiado:'fiado', itens:'itens', mais:'mais'};
+
+  function render(){
+    var tela = TELAS[state.tela] ? state.tela : 'caixa';
+    document.getElementById('view').innerHTML = TELAS[tela]();
+    /* abas */
+    var abas = document.querySelectorAll('.tabs button');
+    for(var i=0;i<abas.length;i++){
+      var alvo = abas[i].getAttribute('data-nav');
+      var ativa = (alvo === tela);
+      if(!ativa){
+        if(alvo === 'mais' && ['vendas','clientes','despesas','camp','fechar','backup'].indexOf(tela) > -1) ativa = true;
+      }
+      abas[i].classList.toggle('on', ativa);
+    }
+    /* seletor de campeonato */
+    var sel = document.getElementById('sel-camp');
+    if(!db.campeonatos.length){
+      sel.innerHTML = '<option value="">Nenhum campeonato</option>';
+      sel.disabled = true;
+    }else{
+      sel.disabled = false;
+      var opts = '';
+      for(var k=0;k<db.campeonatos.length;k++){
+        var c = db.campeonatos[k];
+        opts += '<option value="' + c.id + '"' + (c.id === db.camp_atual ? ' selected' : '') + '>'
+          + esc(c.nome) + (c.status === 'encerrado' ? ' (encerrado)' : '') + '</option>';
+      }
+      sel.innerHTML = opts;
+    }
+    filtrarProdutos();
+    mostrarAviso();
+  }
+  function filtrarProdutos(){
+    var busca = state.busca.toLocaleLowerCase('pt-BR').trim();
+    var visiveis = 0;
+    document.querySelectorAll('[data-busca]').forEach(function(card){
+      card.hidden = card.getAttribute('data-busca').indexOf(busca) < 0;
+      if(!card.hidden) visiveis++;
+    });
+    var vazioBusca = document.getElementById('busca-vazia');
+    if(vazioBusca) vazioBusca.hidden = visiveis > 0;
+  }
+
+  /* ================= janelas ================= */
+  var modal = document.getElementById('modal');
+  var sheet = document.getElementById('sheet');
+  function abrir(html){
+    sheet.innerHTML = html;
+    modal.hidden = false;
+    document.body.style.overflow = 'hidden';
+  }
+  function fechar(){
+    modal.hidden = true;
+    sheet.innerHTML = '';
+    document.body.style.overflow = '';
+  }
+  modal.addEventListener('click', function(e){ if(e.target === modal) fechar(); });
+
+  function formProduto(p){
+    var cat = p ? p.categoria : 'bebida';
+    var opts = '';
+    for(var k in CATS) opts += '<option value="' + k + '"' + (k === cat ? ' selected' : '') + '>' + CATS[k] + '</option>';
+    return '<h3>' + (p ? 'Editar item' : 'Novo item') + '</h3>'
+      + '<label class="lbl">Nome do item</label>'
+      + '<input class="input" id="p-nome" value="' + esc(p ? p.nome : '') + '" placeholder="Cerveja lata 350ml">'
+      + '<label class="lbl">Categoria</label>'
+      + '<select class="input" id="p-cat">' + opts + '</select>'
+      + '<label class="lbl">Preço que você vende</label>'
+      + '<input class="input" id="p-preco" inputmode="decimal" value="' + (p ? String(p.preco).replace('.', ',') : '') + '" placeholder="7,00">'
+      + '<label class="check"><input type="checkbox" id="p-ativo"' + ((!p || p.ativo !== false) ? ' checked' : '') + '> Mostrar na hora de vender</label>'
+      + '<div class="modal-actions"><button class="btn btn-ghost" data-act="fechar">Cancelar</button>'
+      + '<button class="btn btn-primary" data-act="salvar-produto" data-id="' + (p ? p.id : '') + '">Salvar</button></div>';
+  }
+
+  function formCliente(c, volta){
+    return '<h3>' + (c ? 'Editar cliente' : 'Novo cliente') + '</h3>'
+      + '<label class="lbl">Nome</label>'
+      + '<input class="input" id="c-nome" value="' + esc(c ? c.nome : '') + '" placeholder="Nome do cliente">'
+      + '<label class="lbl">Telefone ou WhatsApp</label>'
+      + '<input class="input" id="c-tel" inputmode="tel" value="' + esc(c ? (c.telefone || '') : '') + '" placeholder="(00) 00000-0000">'
+      + '<label class="lbl">Observação</label>'
+      + '<input class="input" id="c-obs" value="' + esc(c ? (c.obs || '') : '') + '" placeholder="Opcional">'
+      + '<div class="modal-actions"><button class="btn btn-ghost" data-act="fechar">Cancelar</button>'
+      + '<button class="btn btn-primary" data-act="salvar-cliente" data-id="' + (c ? c.id : '') + '" data-volta="' + esc(volta || '') + '">Salvar</button></div>';
+  }
+
+  function formDespesa(d){
+    var cat = d ? d.categoria : 'mercadoria';
+    var opts = '';
+    for(var k in DCATS) opts += '<option value="' + k + '"' + (k === cat ? ' selected' : '') + '>' + DCATS[k] + '</option>';
+    return '<h3>' + (d ? 'Editar despesa' : 'Nova despesa') + '</h3>'
+      + '<label class="lbl">O que você pagou</label>'
+      + '<input class="input" id="d-desc" value="' + esc(d ? d.descricao : '') + '" placeholder="Gelo, mercadoria, transporte…">'
+      + '<label class="lbl">Categoria</label>'
+      + '<select class="input" id="d-cat">' + opts + '</select>'
+      + '<label class="lbl">Valor</label>'
+      + '<input class="input" id="d-valor" inputmode="decimal" value="' + (d ? String(d.valor).replace('.', ',') : '') + '" placeholder="0,00">'
+      + '<label class="lbl">Data</label>'
+      + '<input class="input" id="d-data" type="date" value="' + (d ? d.data : isoHoje()) + '">'
+      + '<div class="modal-actions"><button class="btn btn-ghost" data-act="fechar">Cancelar</button>'
+      + '<button class="btn btn-primary" data-act="salvar-despesa" data-id="' + (d ? d.id : '') + '">Salvar</button></div>';
+  }
+
+  function formCamp(c){
+    var st = c ? (c.status || 'em_andamento') : 'em_andamento';
+    return '<h3>' + (c ? 'Editar campeonato' : 'Novo campeonato') + '</h3>'
+      + '<label class="lbl">Nome</label>'
+      + '<input class="input" id="k-nome" value="' + esc(c ? c.nome : '') + '" placeholder="Copa do Bairro 2026">'
+      + '<label class="lbl">Local</label>'
+      + '<input class="input" id="k-local" value="' + esc(c ? (c.local || '') : '') + '" placeholder="Campo do bairro">'
+      + '<label class="lbl">Primeiro dia de vendas</label>'
+      + '<input class="input" id="k-inicio" type="date" value="' + (c ? (c.inicio || '') : isoHoje()) + '">'
+      + '<label class="lbl">Último dia de vendas</label>'
+      + '<input class="input" id="k-fim" type="date" value="' + (c ? (c.fim || '') : '') + '">'
+      + '<label class="lbl">Situação</label>'
+      + '<select class="input" id="k-status">'
+      + '<option value="em_andamento"' + (st === 'em_andamento' ? ' selected' : '') + '>Em andamento</option>'
+      + '<option value="encerrado"' + (st === 'encerrado' ? ' selected' : '') + '>Encerrado</option>'
+      + '</select>'
+      + '<div class="modal-actions"><button class="btn btn-ghost" data-act="fechar">Cancelar</button>'
+      + '<button class="btn btn-primary" data-act="salvar-camp" data-id="' + (c ? c.id : '') + '">Salvar</button></div>';
+  }
+
+  function pendencias(clienteId, vendaId){
+    return db.vendas.filter(function(v){
+      return v.status !== 'cancelada' && v.forma === 'fiado' && saldoVenda(v) > 0
+        && (vendaId ? v.id === vendaId : v.cliente_id === clienteId);
+    }).sort(function(a,b){ return new Date(a.data) - new Date(b.data); });
+  }
+  function modalReceber(clienteId, nome, vendaId){
+    var saldo = pendencias(clienteId, vendaId).reduce(function(s,v){ return r2(s + saldoVenda(v)); },0);
+    return '<h3>Receber fiado</h3>'
+      + '<p class="small muted" style="margin:4px 0 0">' + esc(nome) + ' deve <b>' + brl(saldo) + '</b></p>'
+      + '<label class="lbl">Quanto recebeu</label>'
+      + '<input class="input" id="r-valor" inputmode="decimal" value="' + String(r2(saldo)).replace('.', ',') + '">'
+      + '<label class="lbl">Como recebeu</label>'
+      + '<select class="input" id="r-forma">'
+      + '<option value="dinheiro">Dinheiro</option><option value="pix">Pix</option><option value="cartao">Cartão</option>'
+      + '</select>'
+      + '<div class="modal-actions"><button class="btn btn-ghost" data-act="fechar">Cancelar</button>'
+      + '<button class="btn btn-primary" data-act="salvar-receb" data-id="' + esc(clienteId) + '" data-venda="' + esc(vendaId || '') + '" data-nome="' + esc(nome) + '">Receber</button></div>';
+  }
+
+  function verVenda(v){
+    var itens = v.itens || [];
+    var h = '<h3>Venda · ' + brl(v.total) + '</h3>'
+      + '<p class="small muted" style="margin:4px 0 12px">' + esc(v.cliente_nome || 'Balcão') + ' · '
+      + esc(FORMAS[v.forma] || v.forma) + ' · ' + dataBR(v.data) + ' ' + horaBR(v.data) + '</p>';
+    h += '<table class="rep">';
+    for(var i=0;i<itens.length;i++){
+      h += '<tr><td>' + itens[i].qtd + '× ' + esc(itens[i].nome) + '</td><td class="r">' + brl(itens[i].preco * itens[i].qtd) + '</td></tr>';
+    }
+    h += '</table>';
+    if(v.forma === 'fiado'){
+      h += '<p class="small" style="margin:12px 0 0">Já pago: <b>' + brl(v.valor_pago || 0) + '</b> · Em aberto: <b>' + brl(saldoVenda(v)) + '</b></p>';
+    }
+    if(v.obs) h += '<p class="small">' + esc(v.obs) + '</p>';
+    var pagos = db.recebimentos.filter(function(r){ return r.venda_id === v.id; });
+    if(pagos.length){
+      h += '<h3 style="font-size:14px;margin-top:14px">Pagamentos recebidos</h3><table class="rep">';
+      pagos.forEach(function(r){ h += '<tr><td>' + dataBR(r.data) + ' ' + horaBR(r.data) + ' · ' + esc(FORMAS[r.forma]) + '</td><td class="r">' + brl(r.valor) + '</td></tr>'; });
+      h += '</table>';
+    }
+    if(v.forma === 'fiado' && v.status !== 'cancelada' && saldoVenda(v) > 0){
+      h += '<button class="btn btn-primary btn-block" style="margin-top:14px" data-act="receber-venda" data-id="' + esc(v.id) + '">Receber esta venda</button>';
+    }
+    h += '<div class="modal-actions">'
+      + '<button class="btn btn-ghost" data-act="del-venda" data-id="' + v.id + '"><svg><use href="#i-trash"/></svg>Apagar</button>'
+      + '<button class="btn btn-primary" data-act="fechar">Fechar</button></div>';
+    return h;
+  }
+
+  /* ================= ações ================= */
+  var ACTIONS = {
+    'fechar': function(){ fechar(); },
+    'cat': function(id){ state.cat = id; render(); },
+
+    'novo-produto': function(){ abrir(formProduto(null)); },
+    'edit-produto': function(id){
+      var p = produtoPorId(id);
+      if(p) abrir(formProduto(p));
+    },
+    'salvar-produto': function(id){
+      var nome = String(val('p-nome')).trim();
+      var preco = r2(num(val('p-preco')));
+      var cat = val('p-cat');
+      var ativo = document.getElementById('p-ativo').checked;
+      if(!nome){ toast('Diga o nome do item'); return; }
+      if(preco <= 0){ toast('Informe o preço de venda'); return; }
+      if(id){
+        for(var i=0;i<db.produtos.length;i++){
+          if(db.produtos[i].id === id){
+            db.produtos[i].nome = nome; db.produtos[i].preco = preco;
+            db.produtos[i].categoria = cat; db.produtos[i].ativo = ativo;
+          }
+        }
+      }else{
+        db.produtos.push({id:uid(), nome:nome, preco:preco, categoria:cat, ativo:ativo});
+      }
+      salvar(); snapshot(); fechar(); toast('Item salvo'); render();
+    },
+    'del-produto': function(id){
+      var p = produtoPorId(id);
+      if(!p) return;
+      if(!confirm('Apagar "' + p.nome + '"? As vendas antigas continuam registradas.')) return;
+      db.produtos = db.produtos.filter(function(x){ return x.id !== id; });
+      state.carrinho = state.carrinho.filter(function(x){ return x.produto_id !== id; });
+      salvar(); render(); toast('Item apagado');
+    },
+
+    'novo-cliente': function(id, el){
+      abrir(formCliente(null, el.getAttribute('data-volta') || ''));
+    },
+    'edit-cliente': function(id){
+      var c = clientePorId(id);
+      if(c) abrir(formCliente(c, ''));
+    },
+    'salvar-cliente': function(id, el){
+      var nome = String(val('c-nome')).trim();
+      var tel = String(val('c-tel')).trim();
+      var obs = String(val('c-obs')).trim();
+      var volta = el.getAttribute('data-volta') || '';
+      if(!nome){ toast('Diga o nome do cliente'); return; }
+      var novoId = id;
+      if(id){
+        for(var i=0;i<db.clientes.length;i++){
+          if(db.clientes[i].id === id){
+            db.clientes[i].nome = nome; db.clientes[i].telefone = tel; db.clientes[i].obs = obs;
+          }
+        }
+      }else{
+        novoId = uid();
+        db.clientes.push({id:novoId, nome:nome, telefone:tel, obs:obs});
+      }
+      salvar(); snapshot(); fechar();
+      if(volta === 'vender'){
+        state.forma = 'fiado';
+        state.clienteVenda = novoId;
+        state.tela = 'vender';
+      }
+      toast('Cliente salvo'); render();
+    },
+    'del-cliente': function(id){
+      var c = clientePorId(id);
+      if(!c) return;
+      var s = saldoCliente(id);
+      if(s > 0){ toast('Este cliente ainda deve ' + brl(s)); return; }
+      if(!confirm('Apagar o cliente "' + c.nome + '"?')) return;
+      db.clientes = db.clientes.filter(function(x){ return x.id !== id; });
+      salvar(); render(); toast('Cliente apagado');
+    },
+
+    'nova-despesa': function(){
+      if(!campAtual()){ toast('Cadastre um campeonato primeiro'); return; }
+      abrir(formDespesa(null));
+    },
+    'edit-despesa': function(id){
+      var d = db.despesas.find(function(x){ return x.id === id; });
+      if(d) abrir(formDespesa(d));
+    },
+    'salvar-despesa': function(id){
+      var desc = String(val('d-desc')).trim();
+      var valor = r2(num(val('d-valor')));
+      var cat = val('d-cat');
+      var data = val('d-data') || isoHoje();
+      var c = campAtual();
+      if(!desc){ toast('Descreva a despesa'); return; }
+      if(valor <= 0){ toast('Informe o valor'); return; }
+      if(id){
+        for(var i=0;i<db.despesas.length;i++){
+          if(db.despesas[i].id === id){
+            db.despesas[i].descricao = desc; db.despesas[i].valor = valor;
+            db.despesas[i].categoria = cat; db.despesas[i].data = data;
+          }
+        }
+      }else{
+        db.despesas.push({id:uid(), camp_id:c.id, descricao:desc, valor:valor, categoria:cat, data:data});
+      }
+      salvar(); snapshot(); fechar(); toast('Despesa salva'); render();
+    },
+    'del-despesa': function(id){
+      if(!confirm('Apagar esta despesa?')) return;
+      db.despesas = db.despesas.filter(function(d){ return d.id !== id; });
+      salvar(); render(); toast('Despesa apagada');
+    },
+
+    'novo-camp': function(){ abrir(formCamp(null)); },
+    'edit-camp': function(id){
+      for(var i=0;i<db.campeonatos.length;i++) if(db.campeonatos[i].id === id) { abrir(formCamp(db.campeonatos[i])); return; }
+    },
+    'salvar-camp': function(id){
+      var nome = String(val('k-nome')).trim();
+      var local = String(val('k-local')).trim();
+      var inicio = val('k-inicio');
+      var fim = val('k-fim');
+      var status = val('k-status');
+      if(!nome){ toast('Diga o nome do campeonato'); return; }
+      if(inicio && fim && fim < inicio){ toast('O último dia não pode ser antes do primeiro'); return; }
+      if(id){
+        for(var i=0;i<db.campeonatos.length;i++){
+          if(db.campeonatos[i].id === id){
+            db.campeonatos[i].nome = nome; db.campeonatos[i].local = local;
+            db.campeonatos[i].inicio = inicio; db.campeonatos[i].fim = fim;
+            db.campeonatos[i].status = status;
+          }
+        }
+      }else{
+        var novo = {id:uid(), nome:nome, local:local, inicio:inicio, fim:fim, status:status, criado:new Date().toISOString()};
+        db.campeonatos.push(novo);
+        db.camp_atual = novo.id;
+      }
+      salvar(); snapshot(); fechar(); toast('Campeonato salvo'); render();
+    },
+    'usar-camp': function(id){
+      db.camp_atual = id; salvar(); state.tela = 'caixa'; toast('Campeonato selecionado'); render();
+    },
+    'del-camp': function(id){
+      var c = null;
+      for(var i=0;i<db.campeonatos.length;i++) if(db.campeonatos[i].id === id) c = db.campeonatos[i];
+      if(!c) return;
+      var n = vendasDe(id).length;
+      var msg = 'Apagar o campeonato "' + c.nome + '"' + (n ? ' e as ' + n + ' venda(s) dele' : '') + '? Isso não volta.';
+      if(!confirm(msg)) return;
+      db.campeonatos = db.campeonatos.filter(function(x){ return x.id !== id; });
+      db.vendas = db.vendas.filter(function(x){ return x.camp_id !== id; });
+      db.recebimentos = db.recebimentos.filter(function(x){ return x.camp_id !== id; });
+      db.despesas = db.despesas.filter(function(x){ return x.camp_id !== id; });
+      if(db.camp_atual === id) db.camp_atual = db.campeonatos.length ? db.campeonatos[0].id : null;
+      salvar(); render(); toast('Campeonato apagado');
+    },
+    'encerrar-camp': function(){
+      var c = campAtual();
+      if(!c) return;
+      if(!confirm('Encerrar "' + c.nome + '"? Você pode reabrir depois.')) return;
+      c.status = 'encerrado'; salvar(); render(); toast('Campeonato encerrado');
+    },
+    'reabrir-camp': function(){
+      var c = campAtual();
+      if(!c) return;
+      c.status = 'em_andamento'; salvar(); render(); toast('Campeonato reaberto');
+    },
+
+    /* venda */
+    'add': function(id){
+      var p = produtoPorId(id);
+      if(!p) return;
+      var achou = null;
+      for(var i=0;i<state.carrinho.length;i++) if(state.carrinho[i].produto_id === id) achou = state.carrinho[i];
+      if(achou) achou.qtd++;
+      else state.carrinho.push({produto_id:p.id, nome:p.nome, preco:p.preco, qtd:1});
+      render();
+    },
+    'mais': function(id){
+      for(var i=0;i<state.carrinho.length;i++) if(state.carrinho[i].produto_id === id) state.carrinho[i].qtd++;
+      render();
+    },
+    'menos': function(id){
+      for(var i=0;i<state.carrinho.length;i++){
+        if(state.carrinho[i].produto_id === id){
+          state.carrinho[i].qtd--;
+          if(state.carrinho[i].qtd <= 0) state.carrinho.splice(i,1);
+          break;
+        }
+      }
+      render();
+    },
+    'forma': function(id){ state.forma = id; render(); },
+    'finalizar': function(){
+      var c = campAtual();
+      if(!c){ toast('Cadastre um campeonato primeiro'); return; }
+      if(!state.carrinho.length){ toast('A venda está vazia'); return; }
+      if(state.forma === 'fiado' && !state.clienteVenda){ toast('Escolha o cliente do fiado'); return; }
+      var cl = state.forma === 'fiado' ? clientePorId(state.clienteVenda) : null;
+      var itens = state.carrinho.map(function(i){
+        return {produto_id:i.produto_id, nome:i.nome, preco:i.preco, qtd:i.qtd, cat:'', categoria:(produtoPorId(i.produto_id)||{}).categoria || 'outro'};
+      });
+      var resumoItens = state.carrinho.map(function(i){ return i.qtd + 'x ' + i.nome; }).join(', ');
+      var total = carrinhoTotal();
+      var venda = {
+        id: uid(), camp_id: c.id, cliente_id: cl ? cl.id : '', cliente_nome: cl ? cl.nome : '',
+        forma: state.forma,
+        status: state.forma === 'fiado' ? 'pendente' : 'paga',
+        total: total, valor_pago: state.forma === 'fiado' ? 0 : total,
+        itens_qtd: carrinhoQtd(), itens_resumo: resumoItens, itens: itens,
+        data: new Date().toISOString(), obs: ''
+      };
+      db.vendas.push(venda);
+      salvar(); snapshot();
+      state.carrinho = [];
+      state.clienteVenda = '';
+      state.forma = 'dinheiro';
+      state.busca = '';
+      state.tela = 'caixa';
+      toast('Venda de ' + brl(total) + ' registrada');
+      render();
+    },
+    'ver-venda': function(id){
+      for(var i=0;i<db.vendas.length;i++) if(db.vendas[i].id === id) { abrir(verVenda(db.vendas[i])); return; }
+    },
+    'del-venda': function(id){
+      if(!confirm('Apagar esta venda? Se ela estava fiada, o valor sai da conta do cliente.')) return;
+      db.vendas = db.vendas.filter(function(v){ return v.id !== id; });
+      db.recebimentos = db.recebimentos.filter(function(r){ return r.venda_id !== id; });
+      salvar(); fechar(); render(); toast('Venda apagada');
+    },
+
+    /* receber fiado */
+    'receber': function(id, el){
+      abrir(modalReceber(id, el.getAttribute('data-nome') || ''));
+    },
+    'receber-venda': function(id){
+      var v = db.vendas.find(function(x){ return x.id === id; });
+      if(v) abrir(modalReceber(v.cliente_id, v.cliente_nome, v.id));
+    },
+    'salvar-receb': function(id, el){
+      var nome = el.getAttribute('data-nome') || '';
+      var valor = r2(num(val('r-valor')));
+      var forma = val('r-forma');
+      if(valor <= 0){ toast('Informe o valor recebido'); return; }
+      var pendentes = pendencias(id, el.getAttribute('data-venda') || '');
+      var saldo = pendentes.reduce(function(s,v){ return r2(s + saldoVenda(v)); },0);
+      if(valor > saldo){ toast('O valor não pode ultrapassar o saldo de ' + brl(saldo)); return; }
+      var resta = valor;
+      for(var i=0;i<pendentes.length && resta > 0.005;i++){
+        var v = pendentes[i];
+        var abater = Math.min(resta, saldoVenda(v));
+        v.valor_pago = r2((v.valor_pago || 0) + abater);
+        if(saldoVenda(v) <= 0.005){ v.valor_pago = v.total; v.status = 'paga'; }
+        db.recebimentos.push({
+          id: uid(), camp_id: v.camp_id, venda_id: v.id, cliente_id: id, cliente_nome: nome || v.cliente_nome,
+          valor: r2(abater), forma: forma, data: new Date().toISOString()
+        });
+        resta = r2(resta - abater);
+      }
+
+      salvar(); snapshot(); fechar(); toast('Recebido ' + brl(valor)); render();
+    },
+
+    /* relatório e backup */
+    'imprimir': function(){ fechar(); setTimeout(function(){ window.print(); }, 120); },
+    'exportar': function(){
+      var nome = 'caixa-campeonato-' + isoHoje() + '.json';
+      var blob = new Blob([JSON.stringify(db, null, 2)], {type:'application/json'});
+      baixar(blob, nome);
+      toast('Backup salvo no aparelho');
+    },
+    'importar': function(){
+      var inp = document.getElementById('file-import');
+      if(inp) inp.click();
+    },
+    'restaurar-snap': function(){
+      var s;
+      try{ s = JSON.parse(localStorage.getItem(LS_SNAP) || 'null'); }catch(e){ s = null; }
+      if(!s || !s.lista || !s.lista.length){ toast('Nenhuma cópia automática guardada'); return; }
+      if(!confirm('Voltar para a cópia de ' + dataLonga(s.lista[0].dia) + '? O que foi lançado depois disso será perdido.')) return;
+      db = s.lista[0].dados;
+      salvar(); render(); toast('Cópia restaurada');
+    },
+    'limpar': function(){
+      if(!confirm('Apagar TODOS os dados deste aparelho? Baixe um backup antes.')) return;
+      if(!confirm('Tem certeza? Isso não pode ser desfeito.')) return;
+      db = vazio();
+      state.carrinho = [];
+      salvar(); state.tela = 'caixa'; render(); toast('Dados apagados');
+    }
+  };
+
+  function baixar(blob, nome){
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = nome;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function(){
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 400);
+  }
+
+  function importarArquivo(file){
+    if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(){
+      var d;
+      try{ d = JSON.parse(String(reader.result)); }
+      catch(e){ toast('Arquivo de backup inválido'); return; }
+      if(!dadosValidos(d)){
+        toast('Este arquivo não é um backup do caixa'); return;
+      }
+      if(!confirm('Restaurar este backup? Os dados atuais do aparelho serão substituídos.')) return;
+      var base = vazio();
+      for(var k in base) if(d[k] === undefined || d[k] === null) d[k] = base[k];
+      db = d;
+      if(!db.camp_atual && db.campeonatos.length) db.camp_atual = db.campeonatos[0].id;
+      executar(function(){
+        salvar(); state.carrinho = []; state.clienteVenda = ''; state.filtroVendas = '';
+        state.tela = 'caixa'; render(); toast('Backup restaurado');
+      });
+    };
+    reader.readAsText(file);
+  }
+
+  /* ================= eventos ================= */
+  document.addEventListener('click', function(e){
+    var nav = e.target.closest('[data-nav]');
+    if(nav){
+      var t = nav.getAttribute('data-nav');
+      if(TELAS[t]){
+        if(t === 'vender' && state.tela !== 'vender'){ /* mantém carrinho */ }
+        state.tela = t;
+        render();
+        window.scrollTo(0, 0);
+      }
+      return;
+    }
+    var alvo = e.target.closest('[data-act]');
+    if(!alvo) return;
+    var fn = ACTIONS[alvo.getAttribute('data-act')];
+    if(fn){
+      executar(function(){ fn(alvo.getAttribute('data-id') || '', alvo, e); });
+    }
+  });
+
+  document.addEventListener('input', function(e){
+    if(e.target.id === 'v-busca'){ state.busca = e.target.value; filtrarProdutos(); }
+  });
+  document.addEventListener('change', function(e){
+    var t = e.target;
+    if(t.id === 'filtro-vendas'){
+      state.filtroVendas = t.value; render();
+    }
+    if(t.id === 'sel-camp'){
+      executar(function(){ db.camp_atual = t.value || null; state.filtroVendas = ''; salvar(); render(); });
+    }
+    if(t.id === 'v-cliente'){
+      state.clienteVenda = t.value || '';
+      render();
+    }
+    if(t.id === 'file-import'){
+      importarArquivo(t.files && t.files[0]);
+      t.value = '';
+    }
+  });
+
+  /* fecha a janela com ESC (computador) */
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && !modal.hidden) fechar();
+  });
+
+  /* ================= início ================= */
+  try{
+    var testeArmazenamento = LS + '_teste';
+    localStorage.setItem(testeArmazenamento, '1'); localStorage.removeItem(testeArmazenamento);
+  }catch(e){ problemaArmazenamento = 'Este navegador bloqueou o armazenamento local. Use um navegador normal, fora do modo privado. Sem armazenamento, não é possível guardar as alterações ao fechar.'; }
+  if(!problemaArmazenamento) snapshot();
+  render();
+  window.CaixaApp = {dados: function(){ return db; }};
+})();
+</script>
+</body>
+</html>
